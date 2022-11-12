@@ -358,6 +358,12 @@ void BOARD_InitOSCPins(void);
  */
 void BOARD_InitLM35(void);
 
+/*!
+ * @brief Configures pin routing and optionally pin electrical features.
+ *
+ */
+void BOARD_InitSensLuz(void);
+
 #if defined(__cplusplus)
 }
 #endif
