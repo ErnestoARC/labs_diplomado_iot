@@ -20,7 +20,7 @@
 /*******************************************************************************
  * Definitions
  ******************************************************************************/
-
+#define LPUART0_BUFFER_SIZE_MAX	50
 /*******************************************************************************
  * Private Prototypes
  ******************************************************************************/
@@ -32,8 +32,9 @@
 /*******************************************************************************
  * Local vars
  ******************************************************************************/
-static uint8_t dato_lpuart0=0;
+static uint8_t dato_lpuart0[LPUART0_BUFFER_SIZE_MAX];
 static uint8_t flag_nuevo_dato_lpuart0=0;
+static uint8_t dato_lpuart0_index=0;
 
 /*******************************************************************************
  * Private Source Code
@@ -48,7 +49,11 @@ void LPUART0_SERIAL_RX_TX_IRQHANDLER(void) {
 
   /* Verifica que la IRQ es por llegada de nuevo dato por Rx*/
 	if ((kLPUART_RxDataRegFullFlag) & intStatus) {
-		dato_lpuart0 = LPUART_ReadByte(LPUART0);
+		dato_lpuart0[dato_lpuart0_index] = LPUART_ReadByte(LPUART0);
+		dato_lpuart0_index++;
+		if(dato_lpuart0_index>LPUART0_BUFFER_SIZE_MAX){
+			dato_lpuart0_index=0;
+		}
 		flag_nuevo_dato_lpuart0=1;
 	}
 
@@ -62,14 +67,25 @@ void LPUART0_SERIAL_RX_TX_IRQHANDLER(void) {
 /*******************************************************************************
  * Public Source Code
  ******************************************************************************/
-uint8_t leer_dato(void) {
-	return (dato_lpuart0);
+uint8_t lpuart0_leer_dato(void) {
+	if(dato_lpuart0_index!=0){
+		return (dato_lpuart0[dato_lpuart0_index-1]);
+	}else{
+		return(0x00);
+	}
 }
 
-uint8_t leer_bandera_nuevo_dato(void) {
+uint8_t lpuart0_leer_bandera_nuevo_dato(void) {
 	return (flag_nuevo_dato_lpuart0);
 }
 
-void escribir_bandera_nuevo_dato(uint8_t nuevo_valor) {
+void lpuart0_escribir_bandera_nuevo_dato(uint8_t nuevo_valor) {
 	flag_nuevo_dato_lpuart0 = nuevo_valor;
+}
+
+void lpuart0_borrar_buffer(void){
+	for(uint8_t i; i<LPUART0_BUFFER_SIZE_MAX; i++){
+		dato_lpuart0[i]=0x00;
+	}
+	dato_lpuart0_index=0;
 }
